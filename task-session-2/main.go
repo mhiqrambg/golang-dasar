@@ -17,15 +17,29 @@ type Config struct {
 }
 
 func main() {
-	// Initialize viper
 	viper.SetConfigFile(".env")
+	viper.AutomaticEnv()
+	
 	if err := viper.ReadInConfig(); err != nil {
-		log.Printf("Warning: Error reading config file, %s", err)
+		log.Printf("Warning: .env file not found, using environment variables")
+	}
+
+	viper.SetDefault("SERVER_PORT", "8080")
+	viper.SetDefault("PORT", "8080")
+
+	port := viper.GetString("PORT")
+	if port == "" {
+		port = viper.GetString("SERVER_PORT")
 	}
 
 	cfg := Config{
-		ServerPort:   viper.GetString("SERVER_PORT"),
+		ServerPort:   port,
 		DBConnection: viper.GetString("DB_CONNECTION"),
+	}
+
+	// Validasi DB_CONNECTION
+	if cfg.DBConnection == "" {
+		log.Fatal("Error: DB_CONNECTION environment variable is required")
 	}
 
 	log.Printf("Server is configured to run on port: %s\n", cfg.ServerPort)
